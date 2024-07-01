@@ -554,7 +554,7 @@ const Other = () => {
   return (
     <Box>
       <Grid gridGap={4} mt={3}>
-        {feConfigs?.docUrl && (
+        {/* {feConfigs?.docUrl && (
           <Link
             bg={'white'}
             href={getDocPath('/docs/intro')}
@@ -575,7 +575,7 @@ const Other = () => {
               {t('system.Help Document')}
             </Box>
           </Link>
-        )}
+        )} */}
         {feConfigs?.chatbotUrl && (
           <Link
             href={feConfigs.chatbotUrl}
@@ -599,7 +599,7 @@ const Other = () => {
           </Link>
         )}
 
-        {feConfigs?.lafEnv && userInfo?.team.role === TeamMemberRoleEnum.owner && (
+        {/* {feConfigs?.lafEnv && userInfo?.team.role === TeamMemberRoleEnum.owner && (
           <Flex
             bg={'white'}
             py={3}
@@ -624,7 +624,7 @@ const Other = () => {
               bg={userInfo?.team.lafAccount?.token ? '#67c13b' : 'myGray.500'}
             />
           </Flex>
-        )}
+        )} */}
 
         {feConfigs?.show_openai_account && (
           <Flex
@@ -652,7 +652,7 @@ const Other = () => {
             />
           </Flex>
         )}
-        {feConfigs?.concatMd && (
+        {/* {feConfigs?.concatMd && (
           <Button
             variant={'whiteBase'}
             justifyContent={'flex-start'}
@@ -663,7 +663,7 @@ const Other = () => {
           >
             联系我们
           </Button>
-        )}
+        )} */}
       </Grid>
 
       {isOpenLaf && userInfo && (

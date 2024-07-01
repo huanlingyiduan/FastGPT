@@ -9,6 +9,7 @@ import { useSystemStore } from '@/web/common/system/useSystemStore';
 import { getDocPath } from '@/web/common/system/doc';
 import { useTranslation } from 'next-i18next';
 import FormLayout from './components/FormLayout';
+import { hashStr } from '@fastgpt/global/common/string/tools';
 
 interface Props {
   setPageType: Dispatch<`${LoginPageTypeEnum}`>;
@@ -39,7 +40,7 @@ const LoginForm = ({ setPageType, loginSuccess }: Props) => {
         loginSuccess(
           await postLogin({
             username,
-            password
+            password: hashStr(password)
           })
         );
         toast({
@@ -57,11 +58,12 @@ const LoginForm = ({ setPageType, loginSuccess }: Props) => {
     [loginSuccess, toast]
   );
 
-  const isCommunityVersion = feConfigs?.show_register === false && !feConfigs?.isPlus;
+  // const isCommunityVersion = feConfigs?.show_register === false && !feConfigs?.isPlus;
 
+  const isCommunityVersion = false;
   const loginOptions = [
-    feConfigs?.show_phoneLogin ? t('support.user.login.Phone number') : '',
-    feConfigs?.show_emailLogin ? t('support.user.login.Email') : '',
+    // feConfigs?.show_phoneLogin ? t('support.user.login.Phone number') : '',
+    // feConfigs?.show_emailLogin ? t('support.user.login.Email') : '',
     t('support.user.login.Username')
   ].filter(Boolean);
 

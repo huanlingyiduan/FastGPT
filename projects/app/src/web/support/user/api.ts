@@ -42,19 +42,22 @@ export const postRegister = ({
     password: hashStr(password)
   });
 
+export const postRegisterUser = ({ username, password }: { username: string; password: string }) =>
+  POST<ResLogin>(`/support/user/account/registerUser`, {
+    username,
+    password: hashStr(password)
+  });
+
 export const postFindPassword = ({
   username,
-  code,
   password
 }: {
   username: string;
-  code: string;
   password: string;
 }) =>
-  POST<ResLogin>(`/proApi/support/user/account/password/updateByCode`, {
+  POST<ResLogin>(`/support/user/account/forgetPassword`, {
     username,
-    code,
-    password: hashStr(password)
+    password
   });
 
 export const updatePasswordByOld = ({ oldPsw, newPsw }: { oldPsw: string; newPsw: string }) =>
@@ -66,7 +69,7 @@ export const updatePasswordByOld = ({ oldPsw, newPsw }: { oldPsw: string; newPsw
 export const postLogin = ({ password, ...props }: PostLoginProps) =>
   POST<ResLogin>('/support/user/account/loginByPassword', {
     ...props,
-    password: hashStr(password)
+    password
   });
 
 export const loginOut = () => GET('/support/user/account/loginout');
