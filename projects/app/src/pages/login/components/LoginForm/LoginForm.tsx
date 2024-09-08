@@ -57,25 +57,30 @@ const LoginForm = ({ setPageType, loginSuccess }: Props) => {
     [loginSuccess, t, toast]
   );
 
-  const isCommunityVersion = !!(feConfigs?.register_method && !feConfigs?.isPlus);
+  // const isCommunityVersion = !!(feConfigs?.register_method && !feConfigs?.isPlus);
+  const isCommunityVersion = false;
 
-  const placeholder = (() => {
-    if (isCommunityVersion) {
-      return t('login:use_root_login');
-    }
-    return [t('common:support.user.login.Username')]
-      .concat(
-        feConfigs?.login_method?.map((item) => {
-          switch (item) {
-            case 'email':
-              return t('common:support.user.login.Email');
-            case 'phone':
-              return t('common:support.user.login.Phone number');
-          }
-        }) ?? []
-      )
-      .join('/');
-  })();
+  // const placeholder = (() => {
+  //   if (isCommunityVersion) {
+  //     return t('login:use_root_login');
+  //   }
+  //   return [t('common:support.user.login.Username')]
+  //     // .concat(
+  //     //   feConfigs?.login_method?.map((item) => {
+  //     //     switch (item) {
+  //     //       case 'email':
+  //     //         return t('common:support.user.login.Email');
+  //     //       case 'phone':
+  //     //         return t('common:support.user.login.Phone number');
+  //     //     }
+  //     //   }) ?? []
+  //     // )
+  //     .join('/');
+  // })();
+
+  // const placeholder = [
+  //   t('common:support.user.login.Username')
+  // ].filter(Boolean).join('/');
 
   return (
     <FormLayout setPageType={setPageType} pageType={LoginPageTypeEnum.passwordLogin}>
@@ -90,7 +95,8 @@ const LoginForm = ({ setPageType, loginSuccess }: Props) => {
         <FormControl isInvalid={!!errors.username}>
           <Input
             bg={'myGray.50'}
-            placeholder={placeholder}
+            // placeholder={t('common:support.user.login.Username')}
+            placeholder="用户名"
             {...register('username', {
               required: true
             })}
@@ -100,21 +106,17 @@ const LoginForm = ({ setPageType, loginSuccess }: Props) => {
           <Input
             bg={'myGray.50'}
             type={'password'}
-            placeholder={
-              isCommunityVersion
-                ? t('login:root_password_placeholder')
-                : t('common:support.user.login.Password')
-            }
+            placeholder={t('common:support.user.login.Password')}
             {...register('password', {
               required: true,
               maxLength: {
                 value: 60,
-                message: t('login:password_condition')
+                message: '密码最多 60 位'
               }
             })}
           ></Input>
         </FormControl>
-        {feConfigs?.docUrl && (
+        {/* {feConfigs?.docUrl && (
           <Flex alignItems={'center'} mt={7} fontSize={'mini'}>
             {t('login:policy_tip')}
             <Link
@@ -134,7 +136,7 @@ const LoginForm = ({ setPageType, loginSuccess }: Props) => {
               {t('login:privacy')}
             </Link>
           </Flex>
-        )}
+        )} */}
 
         <Button
           type="submit"
@@ -149,7 +151,7 @@ const LoginForm = ({ setPageType, loginSuccess }: Props) => {
         </Button>
 
         <Flex align={'center'} justifyContent={'flex-end'} color={'primary.700'}>
-          {feConfigs?.find_password_method && feConfigs.find_password_method.length > 0 && (
+          {true && (
             <Box
               cursor={'pointer'}
               _hover={{ textDecoration: 'underline' }}
@@ -159,7 +161,20 @@ const LoginForm = ({ setPageType, loginSuccess }: Props) => {
               {t('login:forget_password')}
             </Box>
           )}
-          {feConfigs?.register_method && feConfigs.register_method.length > 0 && (
+          {/* {feConfigs?.register_method && feConfigs.register_method.length > 0 && (
+            <>
+              <Box mx={3} h={'16px'} w={'1.5px'} bg={'myGray.250'}></Box>
+              <Box
+                cursor={'pointer'}
+                _hover={{ textDecoration: 'underline' }}
+                onClick={() => setPageType('register')}
+                fontSize="sm"
+              >
+                {t('login:register')}
+              </Box>
+            </>
+          )} */}
+          {true && (
             <>
               <Box mx={3} h={'16px'} w={'1.5px'} bg={'myGray.250'}></Box>
               <Box

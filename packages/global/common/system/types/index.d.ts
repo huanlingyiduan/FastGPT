@@ -24,10 +24,11 @@ export type FastGPTConfigFileType = {
 
 export type FastGPTFeConfigsType = {
   show_emptyChat?: boolean;
-  register_method?: ['email' | 'phone'];
-  login_method?: ['email' | 'phone']; // Attention: login method is diffrent with oauth
-  find_password_method?: ['email' | 'phone'];
-  bind_notification_method?: ['email' | 'phone'];
+  show_register?: boolean;
+  register_method?: ['email' | 'phone' | 'username'];
+  login_method?: ['email' | 'phone' | 'username']; // Attention: login method is diffrent with oauth
+  find_password_method?: ['email' | 'phone' | 'username'];
+  bind_notification_method?: ['email' | 'phone' | 'username'];
   show_appStore?: boolean;
   show_git?: boolean;
   show_pay?: boolean;

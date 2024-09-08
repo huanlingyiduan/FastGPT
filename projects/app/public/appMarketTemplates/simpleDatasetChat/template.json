@@ -1,7 +1,7 @@
 {
   "name": "知识库+对话引导",
   "intro": "每次提问时进行一次知识库搜索，将搜索结果注入 LLM 模型进行参考回答",
-  "author": "FastGPT",
+  "author": "蜂巢百科",
   "avatar": "core/workflow/template/datasetSearch",
   "type": "simple",
   "tags": ["office-services"],
@@ -24,7 +24,7 @@
             "renderTypeList": ["FlowNodeInputTypeEnum.hidden"],
             "valueType": "WorkflowIOValueTypeEnum.string",
             "label": "core.app.Welcome Text",
-            "value": "你好，我是知识库助手，请不要忘记选择知识库噢~\n[你是谁]\n[如何使用]"
+            "value": "你好，我是知识库助手，请不要忘记选择知识库噢~"
           },
           {
             "key": "variables",

@@ -44,18 +44,15 @@ export const postRegister = ({
     password: hashStr(password)
   });
 
-export const postFindPassword = ({
-  username,
-  code,
-  password
-}: {
-  username: string;
-  code: string;
-  password: string;
-}) =>
-  POST<ResLogin>(`/proApi/support/user/account/password/updateByCode`, {
+export const postRegisterUser = ({ username, password }: { username: string; password: string }) =>
+  POST<ResLogin>(`/support/user/account/registerUser`, {
     username,
-    code,
+    password: hashStr(password)
+  });
+
+export const postFindPassword = ({ username, password }: { username: string; password: string }) =>
+  POST<ResLogin>(`/support/user/account/forgetPassword`, {
+    username,
     password: hashStr(password)
   });
 

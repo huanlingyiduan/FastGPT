@@ -53,15 +53,15 @@ const Account = ({ currentTab }: { currentTab: TabEnum }) => {
         ]
       : []),
     // ...(feConfigs?.show_pay && userInfo?.team?.permission.hasWritePer
-    ...(feConfigs?.show_pay || userInfo?.team?.permission.hasWritePer
-      ? [
-          {
-            icon: 'support/bill/payRecordLight',
-            label: t('user:bill_and_invoices'),
-            value: TabEnum.bill
-          }
-        ]
-      : []),
+    // ...(feConfigs?.show_pay || userInfo?.team?.permission.hasWritePer
+    //   ? [
+    //       {
+    //         icon: 'support/bill/payRecordLight',
+    //         label: t('user:bill_and_invoices'),
+    //         value: TabEnum.bill
+    //       }
+    //     ]
+    //   : []),
 
     ...(feConfigs?.show_promotion
       ? [
@@ -150,12 +150,12 @@ const Account = ({ currentTab }: { currentTab: TabEnum }) => {
                 value={currentTab}
                 onChange={setCurrentTab}
               />
-              <Flex alignItems={'center'}>
+              {/* <Flex alignItems={'center'}>
                 <Box w={'8px'} h={'8px'} borderRadius={'50%'} bg={'#67c13b'} />
                 <Box fontSize={'md'} ml={2}>
                   V{systemVersion}
                 </Box>
-              </Flex>
+              </Flex> */}
             </Flex>
           ) : (
             <Box mb={3}>

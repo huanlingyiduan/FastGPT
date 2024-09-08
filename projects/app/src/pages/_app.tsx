@@ -25,7 +25,7 @@ function App({ Component, pageProps }: AppProps) {
           process.env.SYSTEM_DESCRIPTION ||
           `${title}${t('app:intro')}`
         }
-        icon={feConfigs?.favicon || process.env.SYSTEM_FAVICON}
+        icon="/fcbk.ico"
       />
       {scripts?.map((item, i) => <Script key={i} strategy="lazyOnload" {...item}></Script>)}
 

@@ -73,7 +73,7 @@ const FormLayout = ({ children, setPageType, pageType }: Props) => {
   return (
     <Flex flexDirection={'column'} h={'100%'}>
       <Flex alignItems={'center'}>
-        <Flex
+        {/* <Flex
           w={['48px', '56px']}
           h={['48px', '56px']}
           bg={'myGray.25'}
@@ -82,10 +82,10 @@ const FormLayout = ({ children, setPageType, pageType }: Props) => {
           borderColor={'borderColor.base'}
           alignItems={'center'}
           justifyContent={'center'}
-        >
-          <Image src={LOGO_ICON} w={['24px', '28px']} alt={'icon'} />
-        </Flex>
-        <Box ml={3} fontSize={['2xl', '3xl']} fontWeight={'bold'}>
+        > */}
+        <Image src={feConfigs?.favicon} w={['50px', '48px']} alt={'icon'} />
+        {/* </Flex> */}
+        <Box ml={3} fontSize={['3xl', '4xl']} fontWeight={'bold'}>
           {feConfigs?.systemTitle}
         </Box>
       </Flex>

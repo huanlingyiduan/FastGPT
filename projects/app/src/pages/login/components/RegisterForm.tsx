@@ -2,7 +2,7 @@ import React, { Dispatch } from 'react';
 import { FormControl, Box, Input, Button } from '@chakra-ui/react';
 import { useForm } from 'react-hook-form';
 import { LoginPageTypeEnum } from '@/web/support/user/login/constants';
-import { postRegister } from '@/web/support/user/api';
+import { postRegister, postRegisterUser } from '@/web/support/user/api';
 import { useSendCode } from '@/web/support/user/hooks/useSendCode';
 import type { ResLogin } from '@/global/support/api/userRes';
 import { useToast } from '@fastgpt/web/hooks/useToast';
@@ -44,20 +44,18 @@ const RegisterForm = ({ setPageType, loginSuccess }: Props) => {
   const { SendCodeBox } = useSendCode({ type: 'register' });
 
   const { runAsync: onclickRegister, loading: requesting } = useRequest2(
-    async ({ username, password, code }: RegisterType) => {
-      loginSuccess(
-        await postRegister({
-          username,
-          code,
-          password,
-          inviterId: localStorage.getItem('inviterId') || undefined
-        })
-      );
-
-      toast({
-        status: 'success',
-        title: t('user:register.success')
+    async ({ username, password }: RegisterType) => {
+      await postRegisterUser({
+        username,
+        password
+      }).then((res) => {
+        toast({
+          status: 'success',
+          title: t('user:register.success')
+        });
       });
+
+      // send code
 
       // auto register template app
       setTimeout(() => {
@@ -104,34 +102,16 @@ const RegisterForm = ({ setPageType, loginSuccess }: Props) => {
         <FormControl isInvalid={!!errors.username}>
           <Input
             bg={'myGray.50'}
-            placeholder={placeholder}
+            placeholder="用户名"
             {...register('username', {
-              required: t('user:password.email_phone_void'),
-              pattern: {
-                value:
-                  /(^1[3456789]\d{9}$)|(^[A-Za-z0-9]+([_\.][A-Za-z0-9]+)*@([A-Za-z0-9\-]+\.)+[A-Za-z]{2,6}$)/,
-                message: t('user:password.email_phone_error')
-              }
+              required: '用户名不能为空'
+              // pattern: {
+              //   value:
+              //     /(^1[3456789]\d{9}$)|(^[A-Za-z0-9]+([_\.][A-Za-z0-9]+)*@([A-Za-z0-9\-]+\.)+[A-Za-z]{2,6}$)/,
+              //   message: t('user:password.email_phone_error')
+              // }
             })}
           ></Input>
-        </FormControl>
-        <FormControl
-          mt={6}
-          isInvalid={!!errors.code}
-          display={'flex'}
-          alignItems={'center'}
-          position={'relative'}
-        >
-          <Input
-            bg={'myGray.50'}
-            flex={1}
-            maxLength={8}
-            placeholder={t('user:password.verification_code')}
-            {...register('code', {
-              required: t('user:password.code_required')
-            })}
-          ></Input>
-          <SendCodeBox username={username} />
         </FormControl>
         <FormControl mt={6} isInvalid={!!errors.password}>
           <Input

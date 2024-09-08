@@ -53,17 +53,15 @@ const RegisterForm = ({ setPageType, loginSuccess }: Props) => {
     .join('/');
 
   const { runAsync: onclickFindPassword, loading: requesting } = useRequest2(
-    async ({ username, code, password }: RegisterType) => {
-      loginSuccess(
-        await postFindPassword({
-          username,
-          code,
-          password
-        })
-      );
-      toast({
-        status: 'success',
-        title: t('user:password.retrieved')
+    async ({ username, password }: RegisterType) => {
+      await postFindPassword({
+        username,
+        password
+      }).then(() => {
+        toast({
+          status: 'success',
+          title: t('user:password.retrieved')
+        });
       });
     },
     {
@@ -87,18 +85,18 @@ const RegisterForm = ({ setPageType, loginSuccess }: Props) => {
         <FormControl isInvalid={!!errors.username}>
           <Input
             bg={'myGray.50'}
-            placeholder={placeholder}
+            placeholder="用户名"
             {...register('username', {
-              required: t('user:password.email_phone_void'),
-              pattern: {
-                value:
-                  /(^1[3456789]\d{9}$)|(^[A-Za-z0-9]+([_\.][A-Za-z0-9]+)*@([A-Za-z0-9\-]+\.)+[A-Za-z]{2,6}$)/,
-                message: t('user:password.email_phone_error')
-              }
+              required: t('user:password.email_phone_void')
+              // pattern: {
+              //   value:
+              //     /(^1[3456789]\d{9}$)|(^[A-Za-z0-9]+([_\.][A-Za-z0-9]+)*@([A-Za-z0-9\-]+\.)+[A-Za-z]{2,6}$)/,
+              //   message: t('user:password.email_phone_error')
+              // }
             })}
           ></Input>
         </FormControl>
-        <FormControl
+        {/* <FormControl
           mt={6}
           isInvalid={!!errors.code}
           display={'flex'}
@@ -115,21 +113,21 @@ const RegisterForm = ({ setPageType, loginSuccess }: Props) => {
             })}
           ></Input>
           <SendCodeBox username={username} />
-        </FormControl>
+        </FormControl> */}
         <FormControl mt={6} isInvalid={!!errors.password}>
           <Input
             bg={'myGray.50'}
             type={'password'}
-            placeholder={t('user:password.new_password')}
+            placeholder="新密码(4~20位)"
             {...register('password', {
-              required: t('user:password.password_required'),
+              required: '密码不能为空',
               minLength: {
                 value: 4,
-                message: t('user:password.password_condition')
+                message: '密码最少 4 位最多 20 位'
               },
               maxLength: {
                 value: 20,
-                message: t('user:password.password_condition')
+                message: '密码最少 4 位最多 20 位'
               }
             })}
           ></Input>
@@ -138,10 +136,9 @@ const RegisterForm = ({ setPageType, loginSuccess }: Props) => {
           <Input
             bg={'myGray.50'}
             type={'password'}
-            placeholder={t('user:password.confirm')}
+            placeholder="确认密码"
             {...register('password2', {
-              validate: (val) =>
-                getValues('password') === val ? true : t('user:password.not_match')
+              validate: (val) => (getValues('password') === val ? true : '两次密码不一致')
             })}
           ></Input>
         </FormControl>
@@ -155,7 +152,7 @@ const RegisterForm = ({ setPageType, loginSuccess }: Props) => {
           isLoading={requesting}
           onClick={handleSubmit(onclickFindPassword)}
         >
-          {t('user:password.retrieve')}
+          重置密码
         </Button>
         <Box
           float={'right'}
