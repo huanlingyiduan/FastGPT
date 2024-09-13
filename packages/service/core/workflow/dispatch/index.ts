@@ -119,6 +119,31 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
     ...props
   } = data;
 
+  // 初始化深度和自动增加深度，避免无限嵌套
+  if (!props.workflowDispatchDeep) {
+    props.workflowDispatchDeep = 1;
+  } else {
+    props.workflowDispatchDeep += 1;
+  }
+
+  if (props.workflowDispatchDeep > 20) {
+    return {
+      flowResponses: [],
+      flowUsages: [],
+      debugResponse: {
+        finishedNodes: [],
+        finishedEdges: [],
+        nextStepRunNodes: []
+      },
+      [DispatchNodeResponseKeyEnum.runTimes]: 1,
+      [DispatchNodeResponseKeyEnum.assistantResponses]: [],
+      [DispatchNodeResponseKeyEnum.toolResponses]: null,
+      newVariables: removeSystemVariable(variables)
+    };
+  }
+
+  let workflowRunTimes = 0;
+
   // set sse response headers
   if (stream && res) {
     res.setHeader('Content-Type', 'text/event-stream;charset=utf-8');
@@ -154,7 +179,8 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
       nodeDispatchUsages,
       toolResponses,
       assistantResponses,
-      rewriteHistories
+      rewriteHistories,
+      runTimes = 1
     }: Omit<
       DispatchNodeResultType<{
         [NodeOutputKeyEnum.answerText]?: string;
@@ -163,6 +189,10 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
       'nodeResponse'
     >
   ) {
+    // Add run times
+    workflowRunTimes += runTimes;
+    props.maxRunTimes -= runTimes;
+
     if (responseData) {
       chatResponses.push(responseData);
     }
@@ -330,7 +360,6 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
     const nodeRunResult = await (() => {
       if (status === 'run') {
         nodeRunBeforeHook(node);
-        props.maxRunTimes--;
         addLog.debug(`[dispatchWorkFlow] nodeRunWithActive: ${node.name}`);
         return nodeRunWithActive(node);
       }
@@ -344,6 +373,18 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
     })();
 
     if (!nodeRunResult) return [];
+
+    /* 
+      特殊情况：
+      通过 skipEdges 可以判断是运行了分支节点。
+      由于分支节点，可能会实现递归调用（skip 连线往前递归）
+      需要把分支节点也加入到已跳过的记录里，可以保证递归 skip 运行时，至多只会传递到当前分支节点，不会影响分支后的内容。
+    */
+    const skipEdges = (nodeRunResult.result[DispatchNodeResponseKeyEnum.skipHandleId] ||
+      []) as string[];
+    if (skipEdges && skipEdges?.length > 0) {
+      skippedNodeIdList.add(node.nodeId);
+    }
 
     // In the current version, only one interactive node is allowed at the same time
     const interactiveResponse = nodeRunResult.result?.[DispatchNodeResponseKeyEnum.interactive];
@@ -530,7 +571,6 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
 
   // start process width initInput
   const entryNodes = runtimeNodes.filter((item) => item.isEntry);
-
   // reset entry
   runtimeNodes.forEach((item) => {
     // Interactive node is not the entry node, return interactive result
@@ -565,6 +605,7 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
       finishedEdges: runtimeEdges,
       nextStepRunNodes: debugNextStepRunNodes
     },
+    [DispatchNodeResponseKeyEnum.runTimes]: workflowRunTimes,
     [DispatchNodeResponseKeyEnum.assistantResponses]:
       mergeAssistantResponseAnswerText(chatAssistantResponse),
     [DispatchNodeResponseKeyEnum.toolResponses]: toolRunResponse,

@@ -20,6 +20,7 @@ import AIModelSelector from '@/components/Select/AIModelSelector';
 import MyIcon from '@fastgpt/web/components/common/Icon';
 import { useSystem } from '@fastgpt/web/hooks/useSystem';
 import QuestionTip from '@fastgpt/web/components/common/MyTooltip/QuestionTip';
+import ComplianceTip from '@/components/common/ComplianceTip/index';
 
 export type CreateDatasetType =
   | DatasetTypeEnum.dataset
@@ -234,6 +235,8 @@ const CreateModal = ({
           {t('common:common.Confirm Create')}
         </Button>
       </ModalFooter>
+
+      <ComplianceTip pb={6} pt={0} px={9} type={'dataset'} />
 
       <File onSelect={onSelectFile} />
     </MyModal>

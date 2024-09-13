@@ -60,7 +60,7 @@ import dynamic from 'next/dynamic';
 import type { StreamResponseType } from '@/web/common/api/fetch';
 import { useContextSelector } from 'use-context-selector';
 import { useSystem } from '@fastgpt/web/hooks/useSystem';
-import { useCreation, useMemoizedFn, useThrottleFn, useTrackedEffect } from 'ahooks';
+import { useCreation, useMemoizedFn, useThrottleFn } from 'ahooks';
 import MyIcon from '@fastgpt/web/components/common/Icon';
 
 const ResponseTags = dynamic(() => import('./components/ResponseTags'));
@@ -537,6 +537,7 @@ const ChatBox = (
 
             if (!err?.responseText) {
               resetInputVal({ text, files });
+              // 这里的 newChatList 没包含用户交互输入的内容，所以重置后刚好是正确的。
               setChatHistories(newChatList.slice(0, newChatList.length - 2));
             }
 
@@ -832,12 +833,10 @@ const ChatBox = (
     };
     window.addEventListener('message', windowMessage);
 
-    eventBus.on(EventNameEnum.sendQuestion, ({ text }: { text: string }) => {
-      if (!text) return;
-      sendPrompt({
-        text
-      });
-    });
+    const fn: SendPromptFnType = (e) => {
+      sendPrompt(e);
+    };
+    eventBus.on(EventNameEnum.sendQuestion, fn);
     eventBus.on(EventNameEnum.editQuestion, ({ text }: { text: string }) => {
       if (!text) return;
       resetInputVal({ text });
@@ -881,7 +880,6 @@ const ChatBox = (
                     onRetry={retryInput(item.dataId)}
                     onDelete={delOneMessage(item.dataId)}
                     isLastChild={index === chatHistories.length - 1}
-                    onSendMessage={sendPrompt}
                   />
                 )}
                 {item.obj === ChatRoleEnum.AI && (
@@ -891,7 +889,6 @@ const ChatBox = (
                       avatar={appAvatar}
                       chat={item}
                       isLastChild={index === chatHistories.length - 1}
-                      onSendMessage={sendPrompt}
                       {...{
                         showVoiceIcon,
                         shareId,
@@ -977,7 +974,6 @@ const ChatBox = (
     outLinkUid,
     questionGuides,
     retryInput,
-    sendPrompt,
     shareId,
     showEmpty,
     showMarkIcon,
