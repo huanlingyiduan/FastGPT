@@ -40,14 +40,14 @@ const OutLink = () => {
       desc: t('common:core.app.Api request desc'),
       value: PublishChannelEnum.apikey,
       isProFn: false
-    },
-    {
-      icon: 'core/app/publish/lark',
-      title: t('publish:feishu_bot'),
-      desc: t('publish:feishu_bot_desc'),
-      value: PublishChannelEnum.feishu,
-      isProFn: true
-    },
+    }
+    // {
+    //   icon: 'core/app/publish/lark',
+    //   title: t('publish:feishu_bot'),
+    //   desc: t('publish:feishu_bot_desc'),
+    //   value: PublishChannelEnum.feishu,
+    //   isProFn: true
+    // },
     // {
     //   icon: 'core/app/publish/wecom',
     //   title: t('publish:wecom.bot'),
@@ -55,13 +55,13 @@ const OutLink = () => {
     //   value: PublishChannelEnum.wecom,
     //   isProFn: true
     // },
-    {
-      icon: 'core/app/publish/offiaccount',
-      title: t('publish:official_account.name'),
-      desc: t('publish:official_account.desc'),
-      value: PublishChannelEnum.officialAccount,
-      isProFn: true
-    }
+    // {
+    //   icon: 'core/app/publish/offiaccount',
+    //   title: t('publish:official_account.name'),
+    //   desc: t('publish:official_account.desc'),
+    //   value: PublishChannelEnum.officialAccount,
+    //   isProFn: true
+    // }
   ]);
 
   const [linkType, setLinkType] = useState<PublishChannelEnum>(PublishChannelEnum.share);

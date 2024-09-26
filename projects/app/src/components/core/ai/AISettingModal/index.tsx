@@ -113,7 +113,7 @@ const AIChatSettingsModal = ({
             />
           </Box>
         </Flex>
-        {feConfigs && (
+        {/* {feConfigs && (
           <Flex mt={6}>
             <Box {...LabelStyles} mr={2}>
               {t('common:core.ai.Ai point price')}
@@ -124,7 +124,7 @@ const AIChatSettingsModal = ({
               })}
             </Box>
           </Flex>
-        )}
+        )} */}
         <Flex mt={6}>
           <Box {...LabelStyles} mr={2}>
             {t('common:core.ai.Max context')}

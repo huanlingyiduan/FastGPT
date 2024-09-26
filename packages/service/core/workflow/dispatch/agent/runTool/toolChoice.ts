@@ -24,7 +24,7 @@ import { countGptMessagesTokens } from '../../../../../common/string/tiktoken/in
 import { GPTMessages2Chats } from '@fastgpt/global/core/chat/adapt';
 import { AIChatItemType } from '@fastgpt/global/core/chat/type';
 import { updateToolInputValue } from './utils';
-import { computedMaxToken, computedTemperature } from '../../../../ai/utils';
+import { computedMaxToken, llmCompletionsBodyFormat } from '../../../../ai/utils';
 import { getNanoid, sliceStrStartEnd } from '@fastgpt/global/common/string/tools';
 import { addLog } from '../../../../../common/system/log';
 
@@ -127,19 +127,18 @@ export const runToolWithToolChoice = async (
       filterMessages
     })
   ]);
-  const requestBody: any = {
-    ...toolModel?.defaultConfig,
-    model: toolModel.model,
-    temperature: computedTemperature({
-      model: toolModel,
-      temperature
-    }),
-    max_tokens,
-    stream,
-    messages: requestMessages,
-    tools,
-    tool_choice: 'auto'
-  };
+  const requestBody = llmCompletionsBodyFormat(
+    {
+      model: toolModel.model,
+      temperature,
+      max_tokens,
+      stream,
+      messages: requestMessages,
+      tools,
+      tool_choice: 'auto'
+    },
+    toolModel
+  );
 
   // console.log(JSON.stringify(requestBody, null, 2));
   /* Run llm */
@@ -153,9 +152,13 @@ export const runToolWithToolChoice = async (
         Accept: 'application/json, text/plain, */*'
       }
     });
+    const isStreamResponse =
+      typeof aiResponse === 'object' &&
+      aiResponse !== null &&
+      ('iterator' in aiResponse || 'controller' in aiResponse);
 
     const { answer, toolCalls } = await (async () => {
-      if (res && stream) {
+      if (res && isStreamResponse) {
         return streamResponse({
           res,
           workflowStreamResponse,
@@ -165,6 +168,7 @@ export const runToolWithToolChoice = async (
       } else {
         const result = aiResponse as ChatCompletion;
         const calls = result.choices?.[0]?.message?.tool_calls || [];
+        const answer = result.choices?.[0]?.message?.content || '';
 
         // 加上name和avatar
         const toolCalls = calls.map((tool) => {
@@ -176,8 +180,33 @@ export const runToolWithToolChoice = async (
           };
         });
 
+        // 不支持 stream 模式的模型的流失响应
+        toolCalls.forEach((tool) => {
+          workflowStreamResponse?.({
+            event: SseResponseEventEnum.toolCall,
+            data: {
+              tool: {
+                id: tool.id,
+                toolName: tool.toolName,
+                toolAvatar: tool.toolAvatar,
+                functionName: tool.function.name,
+                params: tool.function?.arguments ?? '',
+                response: ''
+              }
+            }
+          });
+        });
+        if (answer) {
+          workflowStreamResponse?.({
+            event: SseResponseEventEnum.fastAnswer,
+            data: textAdaptGptResponse({
+              text: answer
+            })
+          });
+        }
+
         return {
-          answer: result.choices?.[0]?.message?.content || '',
+          answer,
           toolCalls: toolCalls
         };
       }
@@ -239,7 +268,7 @@ export const runToolWithToolChoice = async (
                 toolName: '',
                 toolAvatar: '',
                 params: '',
-                response: sliceStrStartEnd(stringToolResponse, 500, 500)
+                response: sliceStrStartEnd(stringToolResponse, 2000, 2000)
               }
             }
           });
@@ -281,17 +310,6 @@ export const runToolWithToolChoice = async (
       ];
 
       // console.log(tokens, 'tool');
-
-      // Run tool status
-      if (node.showStatus) {
-        workflowStreamResponse?.({
-          event: SseResponseEventEnum.flowNodeStatus,
-          data: {
-            status: 'running',
-            name: node.name
-          }
-        });
-      }
 
       // tool assistant
       const toolAssistants = toolsRunResponse

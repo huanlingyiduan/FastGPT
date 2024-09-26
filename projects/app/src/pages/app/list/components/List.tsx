@@ -323,16 +323,16 @@ const ListItem = () => {
                                               label: t('common:common.folder.Move to'),
                                               onClick: () => setMoveAppId(app._id)
                                             }
-                                          ]),
-                                      ...(app.permission.hasManagePer
-                                        ? [
-                                            {
-                                              icon: 'support/team/key',
-                                              label: t('common:permission.Permission'),
-                                              onClick: () => setEditPerAppIndex(index)
-                                            }
-                                          ]
-                                        : [])
+                                          ])
+                                      // ...(app.permission.hasManagePer
+                                      //   ? [
+                                      //       {
+                                      //         icon: 'support/team/key',
+                                      //         label: t('common:permission.Permission'),
+                                      //         onClick: () => setEditPerAppIndex(index)
+                                      //       }
+                                      //     ]
+                                      //   : [])
                                     ]
                                   }
                                 ]

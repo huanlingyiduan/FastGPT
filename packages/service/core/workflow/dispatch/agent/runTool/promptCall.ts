@@ -25,7 +25,7 @@ import {
 import { AIChatItemType } from '@fastgpt/global/core/chat/type';
 import { GPTMessages2Chats } from '@fastgpt/global/core/chat/adapt';
 import { updateToolInputValue } from './utils';
-import { computedMaxToken, computedTemperature } from '../../../../ai/utils';
+import { computedMaxToken, llmCompletionsBodyFormat } from '../../../../ai/utils';
 import { WorkflowResponseType } from '../../type';
 
 type FunctionCallCompletion = {
@@ -113,17 +113,16 @@ export const runToolWithPromptCall = async (
       filterMessages
     })
   ]);
-  const requestBody = {
-    ...toolModel?.defaultConfig,
-    model: toolModel.model,
-    temperature: computedTemperature({
-      model: toolModel,
-      temperature
-    }),
-    max_tokens,
-    stream,
-    messages: requestMessages
-  };
+  const requestBody = llmCompletionsBodyFormat(
+    {
+      model: toolModel.model,
+      temperature,
+      max_tokens,
+      stream,
+      messages: requestMessages
+    },
+    toolModel
+  );
 
   // console.log(JSON.stringify(requestBody, null, 2));
   /* Run llm */
@@ -135,9 +134,13 @@ export const runToolWithPromptCall = async (
       Accept: 'application/json, text/plain, */*'
     }
   });
+  const isStreamResponse =
+    typeof aiResponse === 'object' &&
+    aiResponse !== null &&
+    ('iterator' in aiResponse || 'controller' in aiResponse);
 
   const answer = await (async () => {
-    if (res && stream) {
+    if (res && isStreamResponse) {
       const { answer } = await streamResponse({
         res,
         toolNodes,
@@ -164,6 +167,17 @@ export const runToolWithPromptCall = async (
         })
       });
     }
+
+    // 不支持 stream 模式的模型的流失响应
+    if (stream && !isStreamResponse) {
+      workflowStreamResponse?.({
+        event: SseResponseEventEnum.fastAnswer,
+        data: textAdaptGptResponse({
+          text: replaceAnswer
+        })
+      });
+    }
+
     // No tool is invoked, indicating that the process is over
     const gptAssistantResponse: ChatCompletionAssistantMessageParam = {
       role: ChatCompletionRequestMessageRoleEnum.Assistant,
@@ -260,17 +274,6 @@ export const runToolWithPromptCall = async (
       toolResponsePrompt: stringToolResponse
     };
   })();
-
-  // Run tool status
-  if (node.showStatus) {
-    workflowStreamResponse?.({
-      event: SseResponseEventEnum.flowNodeStatus,
-      data: {
-        status: 'running',
-        name: node.name
-      }
-    });
-  }
 
   // 合并工具调用的结果，使用 functionCall 格式存储。
   const assistantToolMsgParams: ChatCompletionAssistantMessageParam = {

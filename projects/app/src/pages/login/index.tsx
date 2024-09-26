@@ -80,6 +80,7 @@ const Login = () => {
         alignItems={'center'}
         justifyContent={'center'}
         bg={`url('/icon/login-bg.svg') no-repeat`}
+        // bg={`url('/icon/back.svg') no-repeat`}
         backgroundSize={'cover'}
         userSelect={'none'}
         h={'100%'}

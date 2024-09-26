@@ -1,10 +1,9 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Box, Card, IconButton, Flex, Button, useTheme } from '@chakra-ui/react';
 import {
   getDatasetDataList,
   delOneDatasetDataById,
-  getDatasetCollectionById,
-  putDatasetDataById
+  getDatasetCollectionById
 } from '@/web/core/dataset/api';
 import { useQuery } from '@tanstack/react-query';
 import { useToast } from '@fastgpt/web/hooks/useToast';
@@ -16,12 +15,10 @@ import MyIcon from '@fastgpt/web/components/common/Icon';
 import MyInput from '@/components/MyInput';
 import InputDataModal from '../components/InputDataModal';
 import RawSourceBox from '@/components/core/dataset/RawSourceBox';
-import { usePagination } from '@fastgpt/web/hooks/usePagination';
 import { getCollectionSourceData } from '@fastgpt/global/core/dataset/collection/utils';
 import EmptyTip from '@fastgpt/web/components/common/EmptyTip';
 import { DatasetPageContext } from '@/web/core/dataset/context/datasetPageContext';
 import { useContextSelector } from 'use-context-selector';
-import { useRequest2 } from '@fastgpt/web/hooks/useRequest';
 import MyTag from '@fastgpt/web/components/common/Tag/index';
 import MyBox from '@fastgpt/web/components/common/MyBox';
 import { useSystem } from '@fastgpt/web/hooks/useSystem';
@@ -29,7 +26,8 @@ import TagsPopOver from './CollectionCard/TagsPopOver';
 import { useSystemStore } from '@/web/common/system/useSystemStore';
 import MyDivider from '@fastgpt/web/components/common/MyDivider';
 import Markdown from '@/components/Markdown';
-import { DatasetDataListItemType } from '@/global/core/dataset/type';
+import { useMemoizedFn } from 'ahooks';
+import { useScrollPagination } from '@fastgpt/web/hooks/useScrollPagination';
 
 const DataCard = () => {
   const theme = useTheme();
@@ -45,10 +43,6 @@ const DataCard = () => {
   const { t } = useTranslation();
   const [searchText, setSearchText] = useState('');
   const { toast } = useToast();
-  const { openConfirm, ConfirmModal } = useConfirm({
-    content: t('common:dataset.Confirm to delete the data'),
-    type: 'delete'
-  });
 
   const scrollParams = useMemo(
     () => ({
@@ -57,19 +51,21 @@ const DataCard = () => {
     }),
     [collectionId, searchText]
   );
+  const EmptyTipDom = useMemo(
+    () => <EmptyTip text={t('common:core.dataset.data.Empty Tip')} />,
+    [t]
+  );
   const {
     data: datasetDataList,
     ScrollData,
     total,
-    isLoading,
-    refresh,
+    refreshList,
     setData: setDatasetDataList
-  } = usePagination<DatasetDataListItemType>({
-    api: getDatasetDataList,
-    pageSize: 10,
-    type: 'scroll',
+  } = useScrollPagination(getDatasetDataList, {
+    pageSize: 15,
     params: scrollParams,
-    refreshDeps: [searchText, collectionId]
+    refreshDeps: [searchText, collectionId],
+    EmptyTip: EmptyTipDom
   });
 
   const [editDataId, setEditDataId] = useState<string>();
@@ -91,29 +87,56 @@ const DataCard = () => {
 
   const canWrite = useMemo(() => datasetDetail.permission.hasWritePer, [datasetDetail]);
 
+  const { openConfirm, ConfirmModal } = useConfirm({
+    content: t('common:dataset.Confirm to delete the data'),
+    type: 'delete'
+  });
+  const onDeleteOneData = useMemoizedFn((dataId: string) => {
+    openConfirm(async () => {
+      try {
+        await delOneDatasetDataById(dataId);
+        setDatasetDataList((prev) => {
+          return prev.filter((data) => data._id !== dataId);
+        });
+        toast({
+          title: t('common:common.Delete Success'),
+          status: 'success'
+        });
+      } catch (error) {
+        toast({
+          title: getErrText(error),
+          status: 'error'
+        });
+      }
+    })();
+  });
+
   return (
-    <MyBox position={'relative'} py={[1, 0]} h={'100%'}>
+    <MyBox py={[1, 0]} h={'100%'}>
       <Flex flexDirection={'column'} h={'100%'}>
         {/* Header */}
         <Flex alignItems={'center'} px={6}>
-          <Flex className="textEllipsis" flex={'1 0 0'} mr={[3, 5]} alignItems={'center'}>
-            <Box>
-              <Box alignItems={'center'} gap={2} display={isPc ? 'flex' : ''}>
-                {collection?._id && (
-                  <RawSourceBox
-                    collectionId={collection._id}
-                    {...getCollectionSourceData(collection)}
-                    fontSize={['sm', 'md']}
-                    color={'black'}
-                    textDecoration={'none'}
-                  />
-                )}
-              </Box>
-              {feConfigs?.isPlus && !!collection?.tags?.length && (
-                <TagsPopOver currentCollection={collection} />
+          <Box flex={'1 0 0'} mr={[3, 5]} alignItems={'center'}>
+            <Box
+              className="textEllipsis"
+              alignItems={'center'}
+              gap={2}
+              display={isPc ? 'flex' : ''}
+            >
+              {collection?._id && (
+                <RawSourceBox
+                  collectionId={collection._id}
+                  {...getCollectionSourceData(collection)}
+                  fontSize={['sm', 'md']}
+                  color={'black'}
+                  textDecoration={'none'}
+                />
               )}
             </Box>
-          </Flex>
+            {feConfigs?.isPlus && !!collection?.tags?.length && (
+              <TagsPopOver currentCollection={collection} />
+            )}
+          </Box>
           {canWrite && (
             <Box>
               <Button
@@ -162,7 +185,7 @@ const DataCard = () => {
           />
         </Flex>
         {/* data */}
-        <ScrollData flex={'1 0 0'} px={5} pb={5}>
+        <ScrollData px={5} pb={5}>
           <Flex flexDir={'column'} gap={2}>
             {datasetDataList.map((item, index) => (
               <Card
@@ -184,7 +207,6 @@ const DataCard = () => {
                 }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (!collection) return;
                   setEditDataId(item._id);
                 }}
               >
@@ -276,23 +298,7 @@ const DataCard = () => {
                       size={'xsSquare'}
                       onClick={(e) => {
                         e.stopPropagation();
-                        openConfirm(async () => {
-                          try {
-                            await delOneDatasetDataById(item._id);
-                            setDatasetDataList((prev) => {
-                              return prev.filter((data) => data._id !== item._id);
-                            });
-                            toast({
-                              title: t('common:common.Delete Success'),
-                              status: 'success'
-                            });
-                          } catch (error) {
-                            toast({
-                              title: getErrText(error),
-                              status: 'error'
-                            });
-                          }
-                        })();
+                        onDeleteOneData(item._id);
                       }}
                       aria-label={''}
                     />
@@ -302,9 +308,6 @@ const DataCard = () => {
             ))}
           </Flex>
         </ScrollData>
-        {total === 0 && !isLoading && (
-          <EmptyTip text={t('common:core.dataset.data.Empty Tip')}></EmptyTip>
-        )}
       </Flex>
 
       {editDataId !== undefined && collection && (
@@ -314,7 +317,7 @@ const DataCard = () => {
           onClose={() => setEditDataId(undefined)}
           onSuccess={(data) => {
             if (editDataId === '') {
-              refresh();
+              refreshList();
               return;
             }
             setDatasetDataList((prev) => {
